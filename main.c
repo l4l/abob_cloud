@@ -1,29 +1,20 @@
-#include "common.h"
-#include "image.h"
-#include "img_db.h"
 #include "net.h"
-#include "serv.h"
 #include <signal.h>
 
-int *flags;
+struct AbobCloudServer *server;
 
-void intHandler(int v) {
-  *flags &= ~1; 
+void intHandler() {
+  stop(server);
 }
 
+
 int main() {
-  init_db();
-  struct AbobCloudServer server = {};
-  server.tcp_fd = create_tcp(8080);
-  server.udp_fd = create_udp(8080);
+  short port = 8080;
+  server = init(port);
+  start(server);
 
-  start(&server);
-
-  flags = &server.flags;
   signal(SIGINT, intHandler);
 
-  while ((server.flags & 1) == 0) sleep(1);
-
-  close_db();
+  run(server);
   return 0;
 }

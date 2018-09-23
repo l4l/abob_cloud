@@ -5,7 +5,7 @@
 
 ## Флаг
 
-Стега из картинки с примененным к ней шифрованием, e.g: `Enc_k(f(Img))`
+Стега из картинки `F = f(Img)`
 
 При этом `f` является "чистой функции", следовательно `f(Img)` является общим для всех
 
@@ -17,8 +17,8 @@
 Команды:
 
 - Отправить png изображение (TCP)
-- Получить публичный ключ (UDP)
 - Получить флаг по хэшу (UDP)
+- Проверить, есть ли флаг (UDP)
 
 
 ## Основной флоу для сервиса
@@ -33,10 +33,9 @@ service -> service   Save __Img__ it to DB: `INSERT INTO imgs VALUES(Hash PRIMAR
 
 .
    jury -> service   Request __Img__ by its hash `H(Img)`
-service -> service   Find __Img__ in DB, calculate flag from it: `Stg=f(Img)`
-service -> jury      Send `E=Enc_privkey(Stg)`
-   jury -> service   Request pubkey 
-   jury -> jury      Check flag `Dec_pubkey(E)=Stg == Stg_orig`
+service -> service   Find __Img__ in DB, calculate flag from it: `F=f(Img)`
+service -> jury      Send __F__
+   jury -> jury      Check flag `F == F_orig`
 
 
 ## Фичи
@@ -46,19 +45,7 @@ service -> jury      Send `E=Enc_privkey(Stg)`
 Директория с сервисом хранит:
 
     - rwx: сервис elf64 + canary + no aslr
-    - rw-: конфиг (ip+port журейки, ключ для вычисления флага)
-    - rw-: лицензионный ключ
-    - rw-: sqlite базу данных с картинками
-
-
-## Фичи
-
-Сервис требует ключ для своей работы. Требуется разреверсить алгоритм получения ключа и либо сгенерировать его для запуска, либо запатчить лаунчер.
-
-Директория с сервисом хранит:
-
-    - rwx: сервис elf64 + canary + no aslr
-    - rw-: конфиг (ip+port журейки, ключ для вычисления флага)
+    - rw-: конфиг (ip+port журейки)
     - rw-: лицензионный ключ
     - rw-: sqlite базу данных с картинками
 
@@ -66,5 +53,4 @@ service -> jury      Send `E=Enc_privkey(Stg)`
 ## Уязвимости
 
 - RCE: специальное изображения
-- Default config: по дефолту ключ для получения флага у всех один и тот же
 - RC bug -> read overflow -> picture leak

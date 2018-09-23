@@ -34,12 +34,14 @@ void add(const struct Hash *h, const struct Image *img) {
   sqlite3_stmt *stmt;
   if (sqlite3_prepare_v2(db, "INSERT INTO Images(hash, img) VALUES (?, ?)", -1,
                          &stmt, NULL) != SQLITE_OK) {
-    printf("[ERROR] Data cannot be prepared for insertion %s\n", sqlite3_errmsg(db));
+    printf("[ERROR] Data cannot be prepared for insertion %s\n",
+           sqlite3_errmsg(db));
     return;
   }
   if (sqlite3_bind_blob(stmt, 1, h, sizeof(struct Hash), NULL) != SQLITE_OK ||
       sqlite3_bind_blob(stmt, 2, img, sizeof(img->len) + img->len, NULL) !=
-          SQLITE_OK || sqlite3_step(stmt) != SQLITE_DONE) {
+          SQLITE_OK ||
+      sqlite3_step(stmt) != SQLITE_DONE) {
     printf("[ERROR] cannot insert data: %s\n", sqlite3_errmsg(db));
     return;
   }
@@ -49,13 +51,14 @@ void add(const struct Hash *h, const struct Image *img) {
 
 struct Image *search(const struct Hash *h) {
   sqlite3_stmt *stmt;
-  if (sqlite3_prepare_v2(db, "SELECT img FROM Images WHERE hash=?", -1,
-                         &stmt, NULL) != SQLITE_OK) {
-    printf("[ERROR] Data cannot be prepared for insertion %s\n", sqlite3_errmsg(db));
+  if (sqlite3_prepare_v2(db, "SELECT img FROM Images WHERE hash=?", -1, &stmt,
+                         NULL) != SQLITE_OK) {
+    printf("[ERROR] Data cannot be prepared for insertion %s\n",
+           sqlite3_errmsg(db));
     return NULL;
   }
   if (sqlite3_bind_blob(stmt, 1, h, sizeof(struct Hash), NULL) != SQLITE_OK) {
-    printf("[ERROR] cannot insert data: %s\n", sqlite3_errmsg(db));
+    printf("[ERROR] cannot bind data: %s\n", sqlite3_errmsg(db));
     return NULL;
   }
 
@@ -64,7 +67,7 @@ struct Image *search(const struct Hash *h) {
     return NULL;
   }
 
-  size_t *ptr = (size_t*)sqlite3_column_blob(stmt, 0);
+  size_t *ptr = (size_t *)sqlite3_column_blob(stmt, 0);
   size_t len = *ptr;
 
   struct Image *img = new_img(len);
