@@ -15,6 +15,7 @@ struct AbobCloudServer {
 };
 
 struct AbobCloudServer *init(short port);
+void clean(struct AbobCloudServer *);
 void start(struct AbobCloudServer *);
 void stop(struct AbobCloudServer *);
 void run(struct AbobCloudServer *);

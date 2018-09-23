@@ -16,5 +16,6 @@ int main() {
   signal(SIGINT, intHandler);
 
   run(server);
+  clean(server);
   return 0;
 }

@@ -5,6 +5,8 @@
 #include "img_db.h"
 #include "net.h"
 
+#define __USE_MISC
+
 #include <netinet/in.h>
 #include <strings.h>
 #include <sys/socket.h>
@@ -43,7 +45,6 @@ static int create_tcp(short port) {
 static int create_udp(short port) { return create_socket_common(port, SOCK_DGRAM); }
 
 static inline void handle_upload(int fd) {
-  const size_t BUF_SIZE = sizeof(size_t);
   size_t size;
   if (read(fd, &size, sizeof(size)) != sizeof(size) || size == 0 ||
       size > 4096) {
@@ -52,13 +53,13 @@ static inline void handle_upload(int fd) {
   }
 
   struct Image *img = new_img(size);
-  if (read(fd, img->data, size) != size) {
+  if (read(fd, img->data, size) != (int)size) {
     printf("[INFO] Unknown request\n");
-    goto end;
+  } else {
+    struct Hash h = make_hash(img->len, img->data + sizeof(img->len));
+    add(&h, img);
   }
 
-  struct Hash h = make_hash(img->len, img->data + sizeof(img->len));
-  add(&h, img);
   free_img(img);
 
 end:
@@ -86,7 +87,7 @@ static void *flag_server_main_loop(void *v) {
   struct Hash hash;
   struct sockaddr_in addr;
   size_t addr_len;
-  char flag[FLAG_SIZE];
+  uint8_t flag[FLAG_SIZE];
 
   while ((ptr->flags & 1) == 0) {
     ssize_t n = recvfrom(ptr->udp_fd, hash.data, HASH_SIZE, 0,
@@ -108,18 +109,7 @@ static void *flag_server_main_loop(void *v) {
     }
 
     retrieve_flag(img, flag);
-    // add padding, so binary can be easily patched
-    __asm__(".byte 0x66\n"
-            ".byte 0x0f\n"
-            ".byte 0x1f\n"
-            ".byte 0x84\n"
-            ".byte 0x00\n"
-            ".byte 0x00\n"
-            ".byte 0x00\n"
-            ".byte 0x00\n"
-            ".byte 0x00\n");
-    __asm__("lea %eax, dword ptr [%eax + 0x000000000000]");
-    // free_img(img);
+    free_img(img);
     sendto(ptr->udp_fd, flag, FLAG_SIZE, 0, (struct sockaddr *)&addr,
            sizeof(addr));
   }
@@ -138,6 +128,10 @@ struct AbobCloudServer *init(short port) {
   return server;
 }
 
+void clean(struct AbobCloudServer *server) {
+  free(server);
+}
+
 void start(struct AbobCloudServer *server) {
 
   pthread_create(&server->img_serv, NULL, &img_server_main_loop, server);
@@ -149,7 +143,6 @@ void start(struct AbobCloudServer *server) {
 
 void stop(struct AbobCloudServer *server) {
   server->flags &= ~1;
-  free(server);
   close_db();
 }
 
