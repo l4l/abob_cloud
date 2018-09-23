@@ -4,4 +4,4 @@
 
 #define FLAG_SIZE 48
 
-void retrieve_flag(struct Image *img, char *flag);
+void retrieve_flag(struct Image *img, unsigned char *flag);

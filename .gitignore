@@ -3,3 +3,5 @@ SHA256
 upng
 images.db
 *.png
+tmp*.c
+a.out
