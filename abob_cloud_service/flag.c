@@ -27,7 +27,7 @@ void retrieve_flag(struct Image *img, unsigned char *flag) {
   //      0 0 1
   for (unsigned i = 0; i < width; ++i) {
     for (unsigned j = 0; j < height; ++j) {
-      column_count[i] ^= buf[i * width + j];
+      column_count[i] ^= buf[i * height + j];
     }
   }
 
