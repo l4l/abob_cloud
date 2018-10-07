@@ -6,4 +6,4 @@
 #include <stdlib.h>
 #include <string.h>
 
-void die(char *c);
+void die(char *format, ...);

@@ -51,15 +51,16 @@ static int create_udp(short port) {
 
 static inline void handle_upload(int fd) {
   size_t size;
-  if (read(fd, &size, sizeof(size)) != sizeof(size) || size == 0 ||
-      size > 4096) {
-    printf("[INFO] Unknown request\n");
+  size_t sz_read = read(fd, &size, sizeof(size));
+  static const size_t MAX_IMG = 1024 * 32;
+  if (sz_read != sizeof(size) || size == 0 || size > MAX_IMG) {
+    printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, MAX_IMG);
     goto end;
   }
 
   struct Image *img = new_img(size);
-  if (read(fd, img->data, size) != (int)size) {
-    printf("[INFO] Unknown request\n");
+  if ((sz_read = read(fd, img->data, size)) != size) {
+    printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, MAX_IMG);
   } else {
     struct Hash h = make_hash(img->data, img->len);
     add(&h, img);
@@ -76,9 +77,12 @@ static void *img_server_main_loop(void *v) {
   struct AbobCloudServer *ptr = v;
   while ((ptr->flags & 1) == 0) {
     int new_fd = accept(ptr->tcp_fd, NULL, NULL);
-    int pid = vfork();
+    if (new_fd < 0) {
+      die("at accept");
+    }
+    int pid = fork();
     if (pid < 0) {
-      die("Not able to make a fork\n");
+      die("at fork");
     }
     if (pid == 0) {
       handle_upload(new_fd);

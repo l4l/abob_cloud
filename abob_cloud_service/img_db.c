@@ -10,7 +10,7 @@ void init_db() {
   sqlite3_open("images.db", &db);
 
   if (db == NULL) {
-    die("Failed to open DB");
+    die("Failed to open DB %s", sqlite3_errmsg(db));
   }
 
   sqlite3_stmt *stmt;
@@ -18,7 +18,7 @@ void init_db() {
       db, "CREATE TABLE IF NOT EXISTS Images (hash TEXT PRIMARY KEY, img BLOB)",
       -1, &stmt, NULL);
   if (res != SQLITE_OK) {
-    die("Cannot create table");
+    die("Cannot create table %s", sqlite3_errmsg(db));
   }
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
