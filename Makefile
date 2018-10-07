@@ -25,7 +25,7 @@ preloader_bin: service loader_bin
 	objcopy --add-section .rodat=$(OUTDIR)/abob_cloud --set-section-flags .rodat=data,readonly $(OUTDIR)/loader $(OUTDIR)/preloader
 
 get_section: preloader_bin
-	objdump -x $(OUTDIR)/preloader | grep '.rodat ' | awk '{print $$3, $$6}'
+	objdump -x $(OUTDIR)/preloader | grep '.rodat ' | awk '{print $$3, $$6}' | sed -E 's/\s0+/ /' | sed -E 's/^0+//' | awk '{print "0x" $$1, "0x" $$2}'
 
 packed_loader: preloader_bin
 	$(OUTDIR)/preloader 421bee0d7d772f5489192ae430037ac0
@@ -36,4 +36,5 @@ check_loader: packed_loader
 	file /tmp/abob_cloud | grep ELF
 
 clean:
-	rm -f bin/*
+	rm -f /tmp/abob_cloud
+	rm -f $(OUTDIR)/*
