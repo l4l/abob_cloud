@@ -13,6 +13,7 @@ int main() {
   server = init(port);
   start(server);
 
+  signal(SIGCHLD, SIG_IGN);
   signal(SIGINT, intHandler);
 
   run(server);

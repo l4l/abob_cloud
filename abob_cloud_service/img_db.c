@@ -15,7 +15,7 @@ void init_db() {
 
   sqlite3_stmt *stmt;
   int res = sqlite3_prepare_v2(
-      db, "CREATE TABLE IF NOT EXISTS Images (hash BLOB PRIMARY KEY, img BLOB)",
+      db, "CREATE TABLE IF NOT EXISTS Images (hash TEXT PRIMARY KEY, img BLOB)",
       -1, &stmt, NULL);
   if (res != SQLITE_OK) {
     die("Cannot create table");
@@ -38,11 +38,13 @@ void add(const struct Hash *h, const struct Image *img) {
            sqlite3_errmsg(db));
     return;
   }
-  if (sqlite3_bind_blob(stmt, 1, h, sizeof(struct Hash), NULL) != SQLITE_OK ||
-      sqlite3_bind_blob(stmt, 2, img, sizeof(img->len) + img->len, NULL) !=
+
+  if (sqlite3_bind_text(stmt, 1, h->data, -1, SQLITE_STATIC) != SQLITE_OK ||
+      sqlite3_bind_blob(stmt, 2, img, sizeof(img->len) + img->len, SQLITE_STATIC) !=
           SQLITE_OK ||
       sqlite3_step(stmt) != SQLITE_DONE) {
     printf("[ERROR] cannot insert data: %s\n", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
     return;
   }
 
@@ -51,19 +53,22 @@ void add(const struct Hash *h, const struct Image *img) {
 
 struct Image *search(const struct Hash *h) {
   sqlite3_stmt *stmt;
-  if (sqlite3_prepare_v2(db, "SELECT img FROM Images WHERE hash=?", -1, &stmt,
-                         NULL) != SQLITE_OK) {
+  if (sqlite3_prepare_v2(db, "SELECT img FROM Images WHERE hash LIKE ?", -1,
+                         &stmt, NULL) != SQLITE_OK) {
     printf("[ERROR] Data cannot be prepared for insertion %s\n",
            sqlite3_errmsg(db));
     return NULL;
   }
-  if (sqlite3_bind_blob(stmt, 1, h, sizeof(struct Hash), NULL) != SQLITE_OK) {
+
+  if (sqlite3_bind_text(stmt, 1, h->data, HEX_HASH_SIZE, SQLITE_STATIC) != SQLITE_OK) {
     printf("[ERROR] cannot bind data: %s\n", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
     return NULL;
   }
 
   if (sqlite3_step(stmt) != SQLITE_ROW) {
     printf("[WARN] no image found\n");
+    sqlite3_finalize(stmt);
     return NULL;
   }
 

@@ -7,10 +7,13 @@
 
 #define __USE_MISC
 
+#include <ctype.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 static int create_socket_common(short port, int type) {
@@ -42,7 +45,9 @@ static int create_tcp(short port) {
   return fd;
 }
 
-static int create_udp(short port) { return create_socket_common(port, SOCK_DGRAM); }
+static int create_udp(short port) {
+  return create_socket_common(port, SOCK_DGRAM);
+}
 
 static inline void handle_upload(int fd) {
   size_t size;
@@ -56,7 +61,7 @@ static inline void handle_upload(int fd) {
   if (read(fd, img->data, size) != (int)size) {
     printf("[INFO] Unknown request\n");
   } else {
-    struct Hash h = make_hash(img->len, img->data + sizeof(img->len));
+    struct Hash h = make_hash(img->data, img->len);
     add(&h, img);
   }
 
@@ -82,6 +87,13 @@ static void *img_server_main_loop(void *v) {
   pthread_exit(v);
 }
 
+static inline int is_hash(char *buf, size_t len) {
+  int res = 1;
+  for (size_t i = 0; i < len && res; ++i)
+    res &= isgraph(buf[i]) && !isupper(buf[i]);
+  return res;
+}
+
 static void *flag_server_main_loop(void *v) {
   struct AbobCloudServer *ptr = v;
   struct Hash hash;
@@ -90,15 +102,20 @@ static void *flag_server_main_loop(void *v) {
   uint8_t flag[FLAG_SIZE];
 
   while ((ptr->flags & 1) == 0) {
-    ssize_t n = recvfrom(ptr->udp_fd, hash.data, HASH_SIZE, 0,
+    ssize_t n = recvfrom(ptr->udp_fd, hash.data, HEX_HASH_SIZE, 0,
                          (struct sockaddr *)&addr, &addr_len);
     if (n < 0) {
-      printf("[ERROR] at recvfrom");
+      printf("[ERROR] at recvfrom %s\n", strerror(errno));
       continue;
     }
 
-    if (n != HASH_SIZE) {
-      printf("[WARN] received less data, than assumed: %d\n", n);
+    if (n != HEX_HASH_SIZE) {
+      printf("[WARN] received less data, than assumed: %d instead of %d\n", n, HEX_HASH_SIZE);
+      continue;
+    }
+
+    if (!is_hash(hash.data, HEX_HASH_SIZE)) {
+      printf("[WARN] received corrupted hash\n");
       continue;
     }
 
@@ -128,9 +145,7 @@ struct AbobCloudServer *init(short port) {
   return server;
 }
 
-void clean(struct AbobCloudServer *server) {
-  free(server);
-}
+void clean(struct AbobCloudServer *server) { free(server); }
 
 void start(struct AbobCloudServer *server) {
 
