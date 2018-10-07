@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #define KEY_HEX_SIZE 32
 #define KEY_SIZE (KEY_HEX_SIZE / 2)
@@ -78,9 +79,11 @@ int main(int argc, char const *argv[]) {
     buf[i] ^= key[i % KEY_SIZE];
   }
 
-  int f = open("/tmp/abob_cloud", O_WRONLY | O_CREAT);
+  int f = open("/tmp/abob_cloud", O_WRONLY | O_CREAT, S_IRWXU);
   write(f, buf, sgmt_size);
   close(f);
   free(buf);
+
+  printf("Binary is unpacked and available at /tmp/abob_cloud\n");
   return 0;
 }
