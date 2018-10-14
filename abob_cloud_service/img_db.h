@@ -7,4 +7,4 @@ void init_db();
 void close_db();
 
 void add(const struct Hash *h, const struct Image *img);
-struct Image *search(const struct Hash *h);
+struct Image *db_search(const struct Hash *h);

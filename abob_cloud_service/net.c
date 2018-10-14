@@ -3,6 +3,7 @@
 #include "crypto.h"
 #include "flag.h"
 #include "img_db.h"
+#include "img_cache.h"
 #include "net.h"
 
 #define __USE_MISC

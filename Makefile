@@ -1,6 +1,6 @@
 CC ?= clang
 OUTDIR = bin
-OBJ = common.o net.o image.o crypto.o flag.o img_db.o
+OBJ = common.o net.o image.o crypto.o flag.o img_db.o img_cache.o
 CFLAGS = -std=c11 -fno-PIC -m32 -O2 -Wall -Wextra
 LIB = -lsqlite3 -lpthread
 AC_PATH = abob_cloud_service

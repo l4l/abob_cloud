@@ -55,7 +55,8 @@ void add(const struct Hash *h, const struct Image *img) {
   sqlite3_finalize(stmt);
 }
 
-struct Image *search(const struct Hash *h) {
+struct Image *db_search(const struct Hash *h) {
+  printf("[INFO] starting img search in db\n");
   sqlite3_stmt *stmt;
   if (sqlite3_prepare_v2(db, "SELECT img FROM Images WHERE hash LIKE ?", -1,
                          &stmt, NULL) != SQLITE_OK) {
