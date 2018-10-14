@@ -17,22 +17,17 @@ def gen_image():
   img.putdata(gen_matrix())
   return img
 
-def get_flag(img_dat):
+def get_flag(img):
   (width, height) = (FLAG_SIZE, FLAG_SIZE)
-  folding = [0 for i in range(width * 4)]
+  pixels = img.getdata()
+  assert len(pixels) == width * height
+  flag = [0 for i in range(width)]
   for i in range(width):
     for j in range(height):
-      for byte in range(4):
-        c = img_dat[i * height * 4 + j * 4 + byte]
-        folding[i * 4 + byte] ^= ord(c)
+      d = pixels[i * height + j]
+      flag[i] ^= d[0] ^ d[1] ^ d[2] ^ d[3]
 
-  flag = []
-  for i in range(width):
-    k = 0
-    for byte in range(4):
-      k ^= folding[i * 4 + byte]
-    flag.append(chr(k))
-  return ''.join(flag)
+  return ''.join([chr(f) for f in flag])
 
 def push(host, ip, raw_img):
   with remote(host, ip) as r:

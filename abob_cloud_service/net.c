@@ -101,9 +101,8 @@ static inline int is_hash(char *buf, size_t len) {
 static void *flag_server_main_loop(void *v) {
   struct AbobCloudServer *ptr = v;
   struct Hash hash;
-  struct sockaddr_in addr;
-  size_t addr_len;
-  uint8_t flag[FLAG_SIZE];
+  struct sockaddr_in addr = {};
+  size_t addr_len = sizeof(addr);
 
   while ((ptr->flags & 1) == 0) {
     ssize_t n = recvfrom(ptr->udp_fd, hash.data, HEX_HASH_SIZE, 0,
@@ -129,10 +128,16 @@ static void *flag_server_main_loop(void *v) {
       continue;
     }
 
-    retrieve_flag(img, flag);
+    retrieve_flag(img);
+    ssize_t res = sendto(ptr->udp_fd, img->flag, FLAG_SIZE, 0, (struct sockaddr *)&addr,
+           addr_len);
+    if (res < 0) {
+      printf("[WARN] sendto errno: %d, %s\n", ptr->udp_fd, strerror(errno));
+      char ip_str[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, &addr.sin_addr, ip_str, INET_ADDRSTRLEN);
+      printf("Host: %s:%hd\n", ip_str, addr.sin_port);
+    }
     free_img(img);
-    sendto(ptr->udp_fd, flag, FLAG_SIZE, 0, (struct sockaddr *)&addr,
-           sizeof(addr));
   }
   pthread_exit(v);
 }

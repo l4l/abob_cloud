@@ -2,14 +2,16 @@
 
 #include "upng/upng.h"
 
-void retrieve_flag(struct Image *img, unsigned char *flag) {
-  memset(flag, 0, FLAG_SIZE);
+void retrieve_flag(struct Image *img) {
+  memset(img->flag, 0, FLAG_SIZE);
   upng_t *png = upng_new_from_bytes((unsigned char*)img->data, img->len);
   if (upng_decode(png) != UPNG_EOK) {
+    printf("[WARN] Tried to acquire flag from non-png file\n");
     goto end;
   }
   const unsigned width = upng_get_width(png), height = upng_get_height(png);
   if (width != FLAG_SIZE || height != FLAG_SIZE) {
+    printf("[WARN] image size aren't correct\n");
     goto end;
   }
   uint32_t *column_count = malloc(width * sizeof(uint32_t));
@@ -37,7 +39,7 @@ void retrieve_flag(struct Image *img, unsigned char *flag) {
   // Note, that endian doesn't matter, so should work same on all platforms
   for (unsigned i = 0; i < width; ++i) {
     uint32_t col = column_count[i];
-    flag[i] = (uint8_t)(col & 0xff) ^ (uint8_t)((col >> 8) & 0xff) ^
+    img->flag[i] = (uint8_t)(col & 0xff) ^ (uint8_t)((col >> 8) & 0xff) ^
               (uint8_t)((col >> 16) & 0xff) ^ (uint8_t)((col >> 24) & 0xff);
   }
 

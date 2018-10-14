@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 struct Image *new_img(size_t len) {
-  struct Image *img = malloc(sizeof(len) + len);
+  struct Image *img = malloc(FLAG_SIZE + sizeof(len) + len);
   img->len = len;
   return img;
 }

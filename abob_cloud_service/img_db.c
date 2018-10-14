@@ -40,9 +40,8 @@ void add(const struct Hash *h, const struct Image *img) {
   }
 
   if (sqlite3_bind_text(stmt, 1, h->data, -1, SQLITE_STATIC) != SQLITE_OK ||
-      sqlite3_bind_blob(stmt, 2, img, sizeof(img->len) + img->len, SQLITE_STATIC) !=
-          SQLITE_OK ||
-      sqlite3_step(stmt) != SQLITE_DONE) {
+      sqlite3_bind_blob(stmt, 2, &img->len, sizeof(img->len) + img->len, SQLITE_STATIC) !=
+          SQLITE_OK) {
     printf("[ERROR] cannot insert data: %s\n", sqlite3_errmsg(db));
     sqlite3_finalize(stmt);
     return;
