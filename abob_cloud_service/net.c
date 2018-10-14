@@ -24,6 +24,10 @@ static int create_socket_common(short port, int type) {
     die("at opening socket");
   }
 
+  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
+    die("setsockopt failed");
+  }
+
   bzero((char *)&serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -38,7 +42,7 @@ static int create_socket_common(short port, int type) {
 static int create_tcp(short port) {
   int fd = create_socket_common(port, SOCK_STREAM);
 
-  if (listen(fd, 5) != 0) {
+  if (listen(fd, 0) != 0) {
     die("at listening");
   }
 
@@ -52,15 +56,20 @@ static int create_udp(short port) {
 static inline void handle_upload(int fd) {
   size_t size;
   size_t sz_read = read(fd, &size, sizeof(size));
-  static const size_t MAX_IMG = 1024 * 32;
   if (sz_read != sizeof(size) || size == 0 || size > MAX_IMG) {
     printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, MAX_IMG);
     goto end;
   }
 
   struct Image *img = new_img(size);
-  if ((sz_read = read(fd, img->data, size)) != size) {
-    printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, MAX_IMG);
+  sz_read = 0;
+  for (size_t cur_sz = 0;
+    sz_read < size &&
+      (cur_sz = read(fd, img->data + cur_sz, size - sz_read)) > 0;
+    sz_read += cur_sz);
+
+  if (sz_read != size) {
+    printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, size);
   } else {
     struct Hash h = make_hash(img->data, img->len);
     add(&h, img);

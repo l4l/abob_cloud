@@ -47,6 +47,11 @@ void add(const struct Hash *h, const struct Image *img) {
     return;
   }
 
+  int status = 0;
+  while ((status = sqlite3_step(stmt)) == SQLITE_BUSY);
+  if (status != SQLITE_DONE) {
+    printf("[ERROR] cannot insert data: [%d] %s\n", status, sqlite3_errmsg(db));
+  }
   sqlite3_finalize(stmt);
 }
 
