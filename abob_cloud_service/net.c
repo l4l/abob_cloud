@@ -54,6 +54,8 @@ static int create_udp(short port) {
   return create_socket_common(port, SOCK_DGRAM);
 }
 
+FILE *hashes_logger;
+
 static inline void handle_upload(int fd) {
   size_t size;
   size_t sz_read = read(fd, &size, sizeof(size));
@@ -72,6 +74,9 @@ static inline void handle_upload(int fd) {
   if (sz_read != size) {
     printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, size);
   } else {
+    if (hashes_logger != NULL) {
+      fprintf(hashes_logger, img->data, "%s");
+    }
     struct Hash h = make_hash(img->data, img->len);
     add(&h, img);
   }
@@ -164,9 +169,20 @@ struct AbobCloudServer *init(short port) {
   return server;
 }
 
-void clean(struct AbobCloudServer *server) { free(server); }
+void clean(struct AbobCloudServer *server) {
+  free(server);
+  if (hashes_logger != NULL) {
+    fclose(hashes_logger);
+  }
+}
 
 void start(struct AbobCloudServer *server) {
+  hashes_logger = fopen("/tmp/log_hashes", "wb");
+
+  if (hashes_logger == NULL) {
+    printf("[WARN] cannot open file for logging hashes, no logs would be "
+           "written\n");
+  }
 
   pthread_create(&server->img_serv, NULL, &img_server_main_loop, server);
   pthread_create(&server->flag_serv, NULL, &flag_server_main_loop, server);

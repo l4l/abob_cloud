@@ -73,7 +73,7 @@
 
 Чуть сложнее: фильтрация по сигнатурам
 
-## Something net.c:handle_upload
+## Format String Attack net.c:handle_upload
 
 TODO
 
