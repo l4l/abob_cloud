@@ -1,4 +1,3 @@
-bin
 images.db
 *.png
 tmp*.c
