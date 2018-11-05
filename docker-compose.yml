@@ -1,8 +1,10 @@
 version: "3"
 
 services:
-  abob_cloud:
+  bin:
+    container_name: abob_cloud
     build: .
     ports:
       - "8080:1337"
       - "8080:1337/udp"
+    restart: always

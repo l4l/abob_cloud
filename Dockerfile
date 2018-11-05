@@ -6,7 +6,9 @@ RUN dpkg --add-architecture i386 &&                                            \
     useradd -m abob_admin
 
 USER abob_admin
+
 WORKDIR /home/abob_admin
+
 COPY bin/abob_cloud ./
 
 ENTRYPOINT ["/bin/sleep", "infinity"]
