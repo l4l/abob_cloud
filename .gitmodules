@@ -1,6 +1,6 @@
 [submodule "SHA256"]
-	path = abob_clud_task/SHA256
+	path = abob_cloud_service/SHA256
 	url = https://github.com/ilvn/SHA256.git
 [submodule "upng"]
-	path = abob_cloud_task/upng
+	path = abob_cloud_service/upng
 	url = https://github.com/elanthis/upng.git
