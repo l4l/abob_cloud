@@ -1,7 +1,7 @@
 CC := gcc
 OUTDIR = bin
 OBJ = common.o net.o image.o crypto.o flag.o img_db.o img_cache.o
-CFLAGS = -std=c11 -fno-PIC -m32 -O2 -Wall -Wextra -ftree-vectorize -msse2 -msse3
+CFLAGS = -std=c11 -fno-PIC -m32 -O0 -Wall -Wextra
 LIB = -lsqlite3 -lpthread
 AC_PATH = abob_cloud_service
 LD_PATH = loader
@@ -19,17 +19,17 @@ $(OUTDIR)/upng.o: $(AC_PATH)/upng/upng.c $(AC_PATH)/upng/upng.h
 	$(CC) -c -o$@ $< $(CFLAGS)
 
 loader_bin:
-	$(CC) $(LD_PATH)/loader.c $(CFLAGS) -o $(OUTDIR)/loader
+	$(CC) $(LD_PATH)/loader.c $(CFLAGS) -o $(OUTDIR)/stage1_loader
 
 preloader_bin: service loader_bin
-	objcopy --add-section .rodat=$(OUTDIR)/abob_cloud --set-section-flags .rodat=data,readonly $(OUTDIR)/loader $(OUTDIR)/preloader
+	objcopy --add-section .rodat=$(OUTDIR)/abob_cloud --set-section-flags .rodat=data,readonly $(OUTDIR)/stage1_loader $(OUTDIR)/stage2_loader
 
 get_section: preloader_bin
-	objdump -x $(OUTDIR)/preloader | grep '.rodat ' | awk '{print $$3, $$6}' | sed -E 's/\s0+/ /' | sed -E 's/^0+//' | awk '{print "0x" $$1, "0x" $$2}'
+	objdump -x $(OUTDIR)/stage2_loader | grep '.rodat ' | awk '{print $$3, $$6}' | sed -E 's/\s0+/ /' | sed -E 's/^0+//' | awk '{print "0x" $$1, "0x" $$2}'
 
 packed_loader: preloader_bin
-	$(OUTDIR)/preloader 421bee0d7d772f5489192ae430037ac0
-	objcopy --add-section .rodat=/tmp/abob_cloud --set-section-flags .rodat=data,readonly $(OUTDIR)/loader $(OUTDIR)/real_loader
+	$(OUTDIR)/stage2_loader 421bee0d7d772f5489192ae430037ac0
+	objcopy --add-section .rodat=/tmp/abob_cloud --set-section-flags .rodat=data,readonly $(OUTDIR)/stage1_loader $(OUTDIR)/real_loader
 
 check_loader: packed_loader
 	$(OUTDIR)/real_loader 421bee0d7d772f5489192ae430037ac0

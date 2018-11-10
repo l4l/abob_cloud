@@ -9,6 +9,6 @@ USER abob_admin
 
 WORKDIR /home/abob_admin
 
-COPY bin/loader ./
+COPY bin/real_loader ./abob_loader
 
 ENTRYPOINT ["/bin/sleep", "infinity"]

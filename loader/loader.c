@@ -65,7 +65,7 @@ int main(int argc, char const *argv[]) {
     return 3;
   }
 
-  const size_t sgmt_size = 0x9c20, sgmt_offset = 0x1081;
+  const size_t sgmt_size = 0xfb6c, sgmt_offset = 0x1a82;
 
   // Can be read directly from current loaded binary
   // but i'm too lazy to parse elf, sry
