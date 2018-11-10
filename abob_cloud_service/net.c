@@ -1,7 +1,6 @@
 #include "net.h"
 #include "common.h"
 #include "crypto.h"
-#include "flag.h"
 #include "img_db.h"
 #include "img_cache.h"
 #include "net.h"
@@ -137,13 +136,13 @@ static void *flag_server_main_loop(void *v) {
       continue;
     }
 
+    printf("[INFO] received hash: %s\n", hash.data);
     struct Image *img = search(&hash);
     if (img == NULL) {
       printf("[WARN] image isn't found, skipping\n");
       continue;
     }
 
-    retrieve_flag(img);
     ssize_t res = sendto(ptr->udp_fd, img->flag, FLAG_SIZE, 0, (struct sockaddr *)&addr,
            addr_len);
     if (res < 0) {
@@ -152,7 +151,7 @@ static void *flag_server_main_loop(void *v) {
       inet_ntop(AF_INET, &addr.sin_addr, ip_str, INET_ADDRSTRLEN);
       printf("Host: %s:%hd\n", ip_str, addr.sin_port);
     }
-    free_img(img);
+    search_destruct(img);
   }
   pthread_exit(v);
 }

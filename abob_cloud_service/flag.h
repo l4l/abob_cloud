@@ -2,4 +2,5 @@
 
 #include "image.h"
 
-void retrieve_flag(struct Image *img);
+void retrieve_flag(const uint32_t *buf, char *flag, unsigned width,
+                   unsigned height);

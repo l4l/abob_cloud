@@ -3,6 +3,7 @@
 
 #include <sqlite3.h>
 #include <string.h>
+#include <stdlib.h>
 
 sqlite3 *db;
 
@@ -47,8 +48,10 @@ void add(const struct Hash *h, const struct Image *img) {
     return;
   }
 
+  printf("Exec: %s\n", sqlite3_expanded_sql(stmt));
+
   int status = 0;
-  while ((status = sqlite3_step(stmt)) == SQLITE_BUSY);
+  while ((status = sqlite3_step(stmt)) == SQLITE_BUSY) sleep(random() % 3);
   if (status != SQLITE_DONE) {
     printf("[ERROR] cannot insert data: [%d] %s\n", status, sqlite3_errmsg(db));
   }
@@ -70,6 +73,8 @@ struct Image *db_search(const struct Hash *h) {
     sqlite3_finalize(stmt);
     return NULL;
   }
+
+  printf("Exec: %s\n", sqlite3_expanded_sql(stmt));
 
   if (sqlite3_step(stmt) != SQLITE_ROW) {
     printf("[WARN] no image found\n");
