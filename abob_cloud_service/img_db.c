@@ -48,8 +48,6 @@ void add(const struct Hash *h, const struct Image *img) {
     return;
   }
 
-  printf("Exec: %s\n", sqlite3_expanded_sql(stmt));
-
   int status = 0;
   while ((status = sqlite3_step(stmt)) == SQLITE_BUSY) sleep(random() % 3);
   if (status != SQLITE_DONE) {
@@ -74,8 +72,6 @@ struct Image *db_search(const struct Hash *h) {
     return NULL;
   }
 
-  printf("Exec: %s\n", sqlite3_expanded_sql(stmt));
-
   if (sqlite3_step(stmt) != SQLITE_ROW) {
     printf("[WARN] no image found\n");
     sqlite3_finalize(stmt);
@@ -90,7 +86,7 @@ struct Image *db_search(const struct Hash *h) {
   memcpy(img->data, ptr + 1, img->len);
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
-    printf("[WARN] that should happen, sqlite seems broken\n");
+    // printf("[WARN] that should happen, sqlite seems broken\n");
   }
 
   sqlite3_finalize(stmt);

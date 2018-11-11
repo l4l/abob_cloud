@@ -35,7 +35,7 @@ void cache_dump() {
   printf("Cache capacity: %d, head: %d, next_ptr: %d, size: %d\n", CACHE_SIZE, head, next_ptr, size);
   for (int i = 0; i < CACHE_SIZE; ++i) {
     printf("cache[%2d]: flag=", i);
-    for (int j = 0; j < FLAG_SIZE; ++j) {
+    for (int j = 0; j < CACHE_SIZE; ++j) {
       printf("%02hhx", ((struct Image*)&buf_images[buf_hashes[i].offset])->flag[j]);
     }
     printf("\n");
@@ -51,22 +51,22 @@ void cache_add(const struct Hash *hash, struct Image *img) {
     return;
   }
   const unsigned width = upng_get_width(png), height = upng_get_height(png);
-  printf("width: %d, height: %d\n", width, height);
-  if (width > FLAG_SIZE || height > FLAG_SIZE) {
+  // printf("width: %d, height: %d\n", width, height);
+  if (width > IMG_WIDTH || height > IMG_HEIGHT) {
     printf("[WARN] image size aren't correct\n");
     upng_free(png);
     return;
   }
 
-  // this cast may cause overflow, since picture bitness isn't checked
-  printf("Cache before update\n");
-  cache_dump();
+  // printf("Cache before update\n");
+  // cache_dump();
 
   pthread_mutex_lock(&cache_mutex);
 
   const size_t current_ptr = next_ptr;
   struct Image *current = (struct Image *)&buf_images[current_ptr];
 
+  // this cast may cause overflow, since picture bitness isn't checked
   const uint32_t* buf = upng_get_buffer(png);
   const size_t len = upng_get_size(png);
   current->len = len;
@@ -81,6 +81,8 @@ void cache_add(const struct Hash *hash, struct Image *img) {
   buf_hashes[head].offset = current_ptr;
   memcpy(&buf_hashes[head].hash, hash, HEX_HASH_SIZE);
 
+  // TODO: check for the following overwritings
+
   if (size < CACHE_SIZE) {
     size++;
   }
@@ -92,8 +94,8 @@ void cache_add(const struct Hash *hash, struct Image *img) {
 
   pthread_mutex_unlock(&cache_mutex);
 
-  printf("Cache after update\n");
-  cache_dump();
+  // printf("Cache after update\n");
+  // cache_dump();
 }
 
 struct Image *cache_find(const struct Hash *h) {

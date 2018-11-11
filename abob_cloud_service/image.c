@@ -13,12 +13,10 @@ struct Image *new_img(size_t len) {
 }
 
 struct Image *clone_img(struct Image *img) {
-  struct Image *new_img = malloc(size_of(img));
+  struct Image *new_img = calloc(1, size_of(img));
   new_img->len = img->len;
   memcpy(new_img->flag, img->flag, FLAG_SIZE);
   memcpy(new_img->data, img->data, img->len);
-  // make sure that printf(data) won't go to far
-  new_img->data[img->len] = 0;
   return new_img;
 }
 

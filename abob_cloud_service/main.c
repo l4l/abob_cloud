@@ -11,6 +11,7 @@ void intHandler() {
 int main() {
   short port = 8080;
   server = init(port);
+  printf("AbobCloud initialized\n");
   start(server);
 
   signal(SIGCHLD, SIG_IGN);

@@ -2,6 +2,9 @@
 
 #include "common.h"
 
+#define IMG_WIDTH 48
+#define IMG_HEIGHT 12
+
 #pragma pack(push, 1)
 struct Image {
   char flag[FLAG_SIZE];
