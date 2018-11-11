@@ -5,6 +5,6 @@ services:
     container_name: abob_cloud
     build: .
     ports:
-      - "8337:8080"
-      - "8337:8080/udp"
+      - "8080:8080"
+      - "8080:8080/udp"
     restart: always
