@@ -64,23 +64,26 @@ static inline void handle_upload(int fd) {
   }
 
   struct Image *img = new_img(size);
-  sz_read = 0;
-  size_t cur_sz;
-  for (cur_sz = 0;
-    sz_read < size &&
-      (cur_sz = read(fd, img->data + cur_sz, size - sz_read)) > 0;
-    sz_read += cur_sz);
+  int cur_sz;
+  for (cur_sz = 0, sz_read = 0; sz_read < size; sz_read += cur_sz) {
+    cur_sz = read(fd, img->data + sz_read, size - sz_read);
+    if (cur_sz <= 0) break;
+  }
 
-  if (sz_read != size) {
+  if (cur_sz < 0) {
+    printf("[WARN] read error [%d]: %s\n" , cur_sz, strerror(errno));
+  } else if (sz_read != size) {
     printf("[INFO] Unknown request, read: %d bytes instead of %d, []\n", sz_read, size);
-    if (cur_sz < 0) {
-      print("[WARN] read error [%d]: %s\n" , cur_sz, strerror(errno));
+    printf("strerror: %s\n", strerror(errno));
+    if (cur_sz == 0) {
+      printf("Read EOF\n");
     }
   } else {
     if (hashes_logger != NULL) {
       fprintf(hashes_logger, img->data, "%s");
     }
     struct Hash h = make_hash(img->data, img->len);
+    printf("[upload] Recieved hash: %s\n\n", h.data);
     add(&h, img);
   }
 
@@ -118,7 +121,7 @@ static inline int is_hash(char *buf, size_t len) {
 
 static void *flag_server_main_loop(void *v) {
   struct AbobCloudServer *ptr = v;
-  struct Hash hash;
+  struct Hash hash = {};
   struct sockaddr_in addr = {};
   size_t addr_len = sizeof(addr);
 

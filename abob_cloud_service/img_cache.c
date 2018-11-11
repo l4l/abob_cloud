@@ -6,7 +6,7 @@
 #include "img_db.h"
 #include "flag.h"
 
-#define CACHE_SIZE 48
+#define CACHE_SIZE 4
 
 struct HashItem {
   struct Hash hash;
@@ -35,7 +35,7 @@ static void cache_dump() {
   printf("Cache capacity: %d, head: %d, next_ptr: %d, size: %d\n", CACHE_SIZE, head, next_ptr, size);
   for (int i = 0; i < CACHE_SIZE; ++i) {
     printf("cache[%2d]: flag=", i);
-    for (int j = 0; j < CACHE_SIZE; ++j) {
+    for (int j = 0; j < 40; ++j) {
       printf("%02hhx", ((struct Image*)&buf_images[buf_hashes[i].offset])->flag[j]);
     }
     printf("\n");
@@ -58,8 +58,8 @@ static void cache_add(const struct Hash *hash, struct Image *img) {
     return;
   }
 
-  // printf("Cache before update\n");
-  // cache_dump();
+  printf("Cache before update\n");
+  cache_dump();
 
   pthread_mutex_lock(&cache_mutex);
 
@@ -69,6 +69,7 @@ static void cache_add(const struct Hash *hash, struct Image *img) {
   // this cast may cause overflow, since picture bitness isn't checked
   const uint32_t* buf = upng_get_buffer(png);
   const size_t len = upng_get_size(png);
+  printf("IMG: %u %u", len, img->len);
   current->len = len;
   memcpy(current->data, buf, len);
   upng_free(png);
@@ -94,14 +95,14 @@ static void cache_add(const struct Hash *hash, struct Image *img) {
 
   pthread_mutex_unlock(&cache_mutex);
 
-  // printf("Cache after update\n");
-  // cache_dump();
+  printf("Cache after update\n");
+  cache_dump();
 }
 
 static struct Image *cache_find(const struct Hash *h) {
   for (size_t i = 0; i < size; ++i) {
     if (memcmp(h, &buf_hashes[i], HASH_SIZE) == 0) {
-      return (struct Image*)&buf_images[i];
+      return (struct Image*)&buf_images[buf_hashes[i].offset];
     }
   }
   printf("[INFO] cache miss\n");
