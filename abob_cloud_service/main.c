@@ -1,5 +1,6 @@
 #include "net.h"
 #include <signal.h>
+#include <stdio.h>
 
 struct AbobCloudServer *server;
 

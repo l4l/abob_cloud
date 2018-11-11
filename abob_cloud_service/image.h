@@ -2,8 +2,8 @@
 
 #include "common.h"
 
-#define IMG_WIDTH 48
-#define IMG_HEIGHT 12
+#define IMG_WIDTH 512
+#define IMG_HEIGHT 128
 
 #pragma pack(push, 1)
 struct Image {

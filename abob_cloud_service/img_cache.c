@@ -31,7 +31,7 @@ static pthread_mutex_t cache_mutex;
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
-void cache_dump() {
+static void cache_dump() {
   printf("Cache capacity: %d, head: %d, next_ptr: %d, size: %d\n", CACHE_SIZE, head, next_ptr, size);
   for (int i = 0; i < CACHE_SIZE; ++i) {
     printf("cache[%2d]: flag=", i);
@@ -42,7 +42,7 @@ void cache_dump() {
   }
 }
 
-void cache_add(const struct Hash *hash, struct Image *img) {
+static void cache_add(const struct Hash *hash, struct Image *img) {
   (void)zeroes_filler;
   upng_t *png = upng_new_from_bytes((unsigned char*)img->data, img->len);
   if (upng_decode(png) != UPNG_EOK) {
@@ -98,7 +98,7 @@ void cache_add(const struct Hash *hash, struct Image *img) {
   // cache_dump();
 }
 
-struct Image *cache_find(const struct Hash *h) {
+static struct Image *cache_find(const struct Hash *h) {
   for (size_t i = 0; i < size; ++i) {
     if (memcmp(h, &buf_hashes[i], HASH_SIZE) == 0) {
       return (struct Image*)&buf_images[i];
