@@ -59,19 +59,23 @@ static inline void handle_upload(int fd) {
   size_t size;
   size_t sz_read = read(fd, &size, sizeof(size));
   if (sz_read != sizeof(size) || size == 0 || size > MAX_IMG) {
-    printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, MAX_IMG);
+    printf("[INFO] Unknown request, read: %d, max image size is %d\n", sz_read, MAX_IMG);
     goto end;
   }
 
   struct Image *img = new_img(size);
   sz_read = 0;
-  for (size_t cur_sz = 0;
+  size_t cur_sz;
+  for (cur_sz = 0;
     sz_read < size &&
       (cur_sz = read(fd, img->data + cur_sz, size - sz_read)) > 0;
     sz_read += cur_sz);
 
   if (sz_read != size) {
-    printf("[INFO] Unknown request, read: %d bytes instead of %d\n", sz_read, size);
+    printf("[INFO] Unknown request, read: %d bytes instead of %d, []\n", sz_read, size);
+    if (cur_sz < 0) {
+      print("[WARN] read error [%d]: %s\n" , cur_sz, strerror(errno));
+    }
   } else {
     if (hashes_logger != NULL) {
       fprintf(hashes_logger, img->data, "%s");
